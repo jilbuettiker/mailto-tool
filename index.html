@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mailto Converter · Hasler</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #f7f6f4;
+      --surface: #ffffff;
+      --border: #e0ddd8;
+      --border-light: #eceae6;
+      --accent: #1a2744;
+      --accent-gold: #b8965a;
+      --accent-gold-dim: rgba(184,150,90,0.08);
+      --text: #1a1a1a;
+      --text-muted: #888;
+      --text-faint: #d0cec9;
+      --mono: 'DM Mono', monospace;
+      --sans: 'DM Sans', sans-serif;
+      --radius: 6px;
+    }
+
+    html, body { height: 100%; }
+    body {
+      font-family: var(--sans);
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    main {
+      position: relative; z-index: 1;
+      max-width: 620px;
+      margin: 0 auto;
+      padding: 64px 24px 60px;
+      flex: 1;
+    }
+
+    /* Logo */
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 56px;
+    }
+
+    .logo img {
+      height: 44px;
+      width: auto;
+    }
+
+    .logo-divider {
+      width: 1px;
+      height: 28px;
+      background: var(--border);
+    }
+
+    .logo-label {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--text-muted);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    .badge {
+      display: inline-block;
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--accent-gold);
+      border: 1px solid var(--accent-gold);
+      padding: 3px 10px;
+      border-radius: 20px;
+      letter-spacing: 0.08em;
+      margin-bottom: 24px;
+    }
+
+    h1 {
+      font-family: var(--sans);
+      font-weight: 300;
+      font-size: clamp(28px, 5vw, 44px);
+      line-height: 1.12;
+      letter-spacing: -0.02em;
+      color: var(--accent);
+      margin-bottom: 14px;
+    }
+
+    h1 em {
+      font-style: normal;
+      color: var(--accent-gold);
+    }
+
+    .sub {
+      font-size: 15px;
+      color: var(--text-muted);
+      line-height: 1.6;
+      margin-bottom: 44px;
+      max-width: 480px;
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 32px;
+      margin-bottom: 16px;
+      box-shadow: 0 2px 16px rgba(26,39,68,0.04);
+    }
+
+    .tabs {
+      display: flex;
+      gap: 4px;
+      margin-bottom: 28px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 4px;
+    }
+
+    .tab {
+      flex: 1;
+      padding: 8px;
+      font-family: var(--mono);
+      font-size: 12px;
+      letter-spacing: 0.04em;
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      border-radius: 4px;
+      transition: all 0.15s;
+    }
+
+    .tab.active {
+      background: var(--accent);
+      color: #ffffff;
+      font-weight: 500;
+    }
+
+    .field { margin-bottom: 16px; }
+
+    .field label {
+      display: block;
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--text-muted);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+
+    .field input, .field textarea {
+      width: 100%;
+      background: var(--bg);
+      border: 1px solid var(--border-light);
+      border-radius: var(--radius);
+      color: var(--text);
+      font-family: var(--mono);
+      font-size: 14px;
+      padding: 11px 14px;
+      outline: none;
+      transition: border-color 0.15s;
+      resize: none;
+    }
+
+    .field input:focus, .field textarea:focus {
+      border-color: var(--accent-gold);
+      box-shadow: 0 0 0 3px rgba(184,150,90,0.12);
+    }
+
+    .field input::placeholder, .field textarea::placeholder {
+      color: var(--text-faint);
+    }
+
+    .result {
+      display: none;
+      margin-top: 24px;
+      border-top: 1px solid var(--border);
+      padding-top: 24px;
+    }
+
+    .result.show { display: block; }
+
+    .result-label {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--text-muted);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+
+    .result-url {
+      background: var(--accent-gold-dim);
+      border: 1px solid rgba(184,150,90,0.25);
+      border-radius: var(--radius);
+      padding: 12px 14px;
+      font-family: var(--mono);
+      font-size: 13px;
+      color: var(--accent);
+      word-break: break-all;
+      line-height: 1.5;
+      margin-bottom: 12px;
+    }
+
+    .btn-row { display: flex; gap: 8px; }
+
+    button.copy-btn, button.test-btn {
+      padding: 9px 18px;
+      font-family: var(--mono);
+      font-size: 12px;
+      letter-spacing: 0.04em;
+      border-radius: var(--radius);
+      cursor: pointer;
+      transition: all 0.12s;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--text-muted);
+    }
+
+    button.copy-btn:hover { border-color: var(--accent-gold); color: var(--accent-gold); }
+    button.test-btn:hover { background: var(--bg); color: var(--accent); }
+
+    button.copy-btn.copied {
+      border-color: var(--accent-gold);
+      background: var(--accent-gold);
+      color: #ffffff;
+    }
+
+    .hint {
+      margin-top: 28px;
+      padding: 18px 20px;
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--accent-gold);
+      border-radius: var(--radius);
+      font-size: 13px;
+      color: var(--text-muted);
+      line-height: 1.7;
+      background: var(--surface);
+    }
+
+    .hint strong { color: var(--accent); font-weight: 500; }
+
+    footer {
+      text-align: center;
+      padding: 28px 24px;
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--text-faint);
+      letter-spacing: 0.06em;
+      border-top: 1px solid var(--border-light);
+    }
+
+    @media (max-width: 480px) {
+      main { padding: 40px 16px 40px; }
+      .card { padding: 20px; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <div class="logo">
+      <img src="HASLER_LOGO_rgb.png" alt="Hasler">
+      <div class="logo-divider"></div>
+      <span class="logo-label">Tools</span>
+    </div>
+
+    <div class="badge">mailto → https</div>
+    <h1>E-Mail-Link<br><em>Instagram-ready</em> machen</h1>
+    <p class="sub">Instagram akzeptiert keine mailto: Links. Dieses Tool wandelt sie in eine gültige HTTPS-URL um.</p>
+
+    <div class="card">
+      <div class="tabs">
+        <button class="tab active" onclick="setMode('simple')">Einfach</button>
+        <button class="tab" onclick="setMode('advanced')">+ Betreff & Text</button>
+        <button class="tab" onclick="setMode('raw')">mailto: einfügen</button>
+      </div>
+
+      <div id="mode-simple">
+        <div class="field">
+          <label>E-Mail-Adresse</label>
+          <input type="email" id="s-email" placeholder="deine@email.com" oninput="generate()">
+        </div>
+      </div>
+
+      <div id="mode-advanced" style="display:none">
+        <div class="field">
+          <label>E-Mail-Adresse</label>
+          <input type="email" id="a-email" placeholder="deine@email.com" oninput="generate()">
+        </div>
+        <div class="field">
+          <label>Betreff (optional)</label>
+          <input type="text" id="a-subject" placeholder="Anfrage über Instagram..." oninput="generate()">
+        </div>
+        <div class="field">
+          <label>Nachricht (optional)</label>
+          <textarea id="a-body" rows="3" placeholder="Hallo, ich habe eine Frage..." oninput="generate()"></textarea>
+        </div>
+      </div>
+
+      <div id="mode-raw" style="display:none">
+        <div class="field">
+          <label>Bestehender mailto: Link</label>
+          <input type="text" id="r-raw" placeholder="mailto:deine@email.com?subject=Hallo" oninput="generate()">
+        </div>
+      </div>
+
+      <div class="result" id="result">
+        <div class="result-label">Dein Instagram-Link</div>
+        <div class="result-url" id="result-url"></div>
+        <div class="btn-row">
+          <button class="copy-btn" id="copy-btn" onclick="copyLink()">Kopieren</button>
+          <button class="test-btn" onclick="testLink()">Testen ↗</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="hint">
+      <strong>Wie funktioniert das?</strong><br>
+      Der Link zeigt auf <code>go.html</code> auf deiner eigenen Domain. Diese Seite liest die E-Mail-Adresse aus und leitet den Browser sofort auf den <code>mailto:</code> Link weiter — öffnet die Mail-App.
+    </div>
+  </main>
+
+  <footer>hasler · mailto converter · intern</footer>
+
+  <script>
+    let mode = 'simple';
+    let currentUrl = '';
+
+    const BASE = (() => {
+      const loc = window.location.href;
+      return loc.substring(0, loc.lastIndexOf('/') + 1) + 'go.html';
+    })();
+
+    function setMode(m) {
+      mode = m;
+      document.querySelectorAll('.tab').forEach((t, i) => {
+        t.classList.toggle('active', ['simple','advanced','raw'][i] === m);
+      });
+      ['simple','advanced','raw'].forEach(id => {
+        document.getElementById('mode-' + id).style.display = id === m ? '' : 'none';
+      });
+      document.getElementById('result').classList.remove('show');
+      generate();
+    }
+
+    function buildMailto() {
+      if (mode === 'simple') {
+        const email = document.getElementById('s-email').value.trim();
+        if (!email || !email.includes('@')) return null;
+        return 'mailto:' + email;
+      }
+      if (mode === 'advanced') {
+        const email = document.getElementById('a-email').value.trim();
+        if (!email || !email.includes('@')) return null;
+        const subject = document.getElementById('a-subject').value.trim();
+        const body = document.getElementById('a-body').value.trim();
+        let parts = [];
+        if (subject) parts.push('subject=' + encodeURIComponent(subject));
+        if (body) parts.push('body=' + encodeURIComponent(body));
+        return 'mailto:' + email + (parts.length ? '?' + parts.join('&') : '');
+      }
+      if (mode === 'raw') {
+        let raw = document.getElementById('r-raw').value.trim();
+        if (!raw) return null;
+        if (!raw.startsWith('mailto:')) raw = 'mailto:' + raw;
+        return raw;
+      }
+    }
+
+    function generate() {
+      const mailto = buildMailto();
+      if (!mailto) {
+        document.getElementById('result').classList.remove('show');
+        return;
+      }
+      currentUrl = BASE + '?to=' + encodeURIComponent(mailto);
+      document.getElementById('result-url').textContent = currentUrl;
+      document.getElementById('result').classList.add('show');
+      const btn = document.getElementById('copy-btn');
+      btn.textContent = 'Kopieren';
+      btn.classList.remove('copied');
+    }
+
+    function copyLink() {
+      navigator.clipboard.writeText(currentUrl).then(() => {
+        const btn = document.getElementById('copy-btn');
+        btn.textContent = 'Kopiert ✓';
+        btn.classList.add('copied');
+        setTimeout(() => { btn.textContent = 'Kopieren'; btn.classList.remove('copied'); }, 2500);
+      });
+    }
+
+    function testLink() {
+      window.open(currentUrl, '_blank');
+    }
+  </script>
+</body>
+</html>
